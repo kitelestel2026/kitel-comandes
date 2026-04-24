@@ -1324,7 +1324,8 @@ async function sendOrder(){
     const ex=await api('GET',`pedidos?tienda_id=eq.${curStore}&fecha=eq.${today()}&select=id`);
     if(ex&&ex.length) await api('DELETE',`pedidos?id=eq.${ex[0].id}`);
     const encargsText = encargs.filter(e=>e.trim()).join('\n');
-    const ped=await api('POST','pedidos',{tienda_id:curStore,tienda_nom:curNom,fecha:today(),encargs:encargsText||null});
+    const deliveryDateVal = document.getElementById('deliveryDate')?.value || today();
+    const ped=await api('POST','pedidos',{tienda_id:curStore,tienda_nom:curNom,fecha:today(),encargs:encargsText||null,fecha_entrega:deliveryDateVal});
     const pid=ped[0].id;
     const rows=lins.map(([plu,v])=>{
       const prod=PRODS.find(p=>p.plu===parseInt(plu));
@@ -1343,9 +1344,13 @@ async function sendOrder(){
 async function showAdmin(){
   document.getElementById('adminScreen').style.display='block';
   document.getElementById('adminDate').textContent=new Date().toLocaleDateString('ca-ES');
-  // Set default date to today
+  // Set default date to tomorrow (orders made today are for tomorrow's delivery)
   const dateFilter = document.getElementById('adminDateFilter');
-  if(dateFilter) dateFilter.value = today();
+  if(dateFilter) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateFilter.value = formatDateISO(tomorrow);
+  }
   await loadAdmin();
 }
 
@@ -1353,7 +1358,7 @@ async function loadAdmin(){
   loading(true);
   try{
     const adminDate = document.getElementById('adminDateFilter')?.value || today();
-    const peds=await api('GET',`pedidos?fecha=eq.${adminDate}&select=id,tienda_id,tienda_nom,created_at,encargs,fecha_entrega`);
+    const peds=await api('GET',`pedidos?fecha_entrega=eq.${adminDate}&select=id,tienda_id,tienda_nom,created_at,encargs,fecha_entrega`);
     adminData={};
     if(peds&&peds.length){
       for(const p of peds){
