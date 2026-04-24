@@ -337,7 +337,7 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
     </div>
   </div>
   <div class="search-bar">
-    <input type="search" id="searchInput" placeholder="🔍 Buscar producte o codi..." oninput="doFilter()">
+    <input type="search" id="searchInput" placeholder="🔍 Buscar producte o codi..." oninput="doFilter()" onkeydown="handleSearchKey(event)">
     <button class="filter-pill on" id="pillAll" onclick="setPill('all')">TOTS</button>
     <button class="filter-pill" id="pillFill" onclick="setPill('fill')">RESUM</button>
   </div>
@@ -1090,6 +1090,35 @@ function updateProg(){
   document.getElementById('progFill').style.width=pct+'%';
   document.getElementById('progPct').textContent=pct+'%';
   document.getElementById('bottomCount').textContent=count;
+}
+
+function handleSearchKey(event) {
+  if (event.key !== 'ArrowDown' && event.key !== 'Tab' && event.key !== 'ArrowUp') return;
+  
+  // Get all visible rows
+  const visibleRows = [...document.querySelectorAll('.prow:not(.hidden)')];
+  if (!visibleRows.length) return;
+
+  if (event.key === 'ArrowDown' || event.key === 'Tab') {
+    event.preventDefault();
+    // Focus the first SOBRA input of the first visible product
+    const firstInput = visibleRows[0].querySelector('.qty-inp');
+    if (firstInput) {
+      firstInput.focus();
+      firstInput.select();
+      firstInput.scrollIntoView({ block: 'nearest' });
+    }
+  }
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    // Focus the first SOBRA input of the last visible product
+    const lastInput = visibleRows[visibleRows.length - 1].querySelector('.qty-inp');
+    if (lastInput) {
+      lastInput.focus();
+      lastInput.select();
+      lastInput.scrollIntoView({ block: 'nearest' });
+    }
+  }
 }
 
 function doFilter(){
