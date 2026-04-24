@@ -987,24 +987,76 @@ function updTipus(plu,val,sel){
 const lastTipus = {};
 
 // Tab flow: SOBRA → PEDIDO del mismo producto → SOBRA del siguiente
+// Arrow keys: ↑↓ entre productes (mateixa columna), ←→ entre SOBRA/PEDIDO
 function handleQtyKey(event, plu, field) {
-  if (event.key !== 'Tab') return;
-  event.preventDefault();
   const allInputs = [...document.querySelectorAll('.qty-inp')];
   const current = event.target;
   const idx = allInputs.indexOf(current);
-  if (field === 'sobra') {
-    // Ir al PEDIDO del mismo producto
-    if (idx + 1 < allInputs.length) {
-      allInputs[idx + 1].focus();
-      allInputs[idx + 1].select();
+
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    if (field === 'sobra') {
+      // Tab: SOBRA → PEDIDO del mismo producto
+      if (idx + 1 < allInputs.length) {
+        allInputs[idx + 1].focus();
+        allInputs[idx + 1].select();
+      }
+    } else {
+      // Tab: PEDIDO → SOBRA del siguiente producto
+      if (idx + 1 < allInputs.length) {
+        allInputs[idx + 1].focus();
+        allInputs[idx + 1].select();
+      }
     }
-  } else {
-    // Ir al SOBRA del siguiente producto
-    if (idx + 1 < allInputs.length) {
-      allInputs[idx + 1].focus();
-      allInputs[idx + 1].select();
+    return;
+  }
+
+  if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    if (field === 'sobra') {
+      // → : SOBRA → PEDIDO del mismo producto
+      if (idx + 1 < allInputs.length) {
+        allInputs[idx + 1].focus();
+        allInputs[idx + 1].select();
+      }
     }
+    return;
+  }
+
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    if (field === 'pedido') {
+      // ← : PEDIDO → SOBRA del mismo producto
+      if (idx - 1 >= 0) {
+        allInputs[idx - 1].focus();
+        allInputs[idx - 1].select();
+      }
+    }
+    return;
+  }
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    // ↓ : mateixa columna, producte següent (salt de 2)
+    const nextIdx = idx + 2;
+    if (nextIdx < allInputs.length) {
+      allInputs[nextIdx].focus();
+      allInputs[nextIdx].select();
+      allInputs[nextIdx].closest('.prow') && allInputs[nextIdx].scrollIntoView({block:'nearest'});
+    }
+    return;
+  }
+
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    // ↑ : mateixa columna, producte anterior (salt de 2)
+    const prevIdx = idx - 2;
+    if (prevIdx >= 0) {
+      allInputs[prevIdx].focus();
+      allInputs[prevIdx].select();
+      allInputs[prevIdx].scrollIntoView({block:'nearest'});
+    }
+    return;
   }
 }
 
