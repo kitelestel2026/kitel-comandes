@@ -95,6 +95,11 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 .btn-esborrar { padding:13px 14px; background:#fff4ee; color:var(--red); border:2px solid #f7c9b3; border-radius:12px; font-family:'DM Mono',monospace; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; }
 .btn-esborrar:hover { background:#fde8d8; }
 
+/* En vertical (portrait), amagar el botó Esborrar */
+@media (orientation: portrait) and (max-width: 600px) {
+  .btn-esborrar { display:none; }
+}
+
 /* ── CONFIRM DELETE MODAL ── */
 .confirm-delete-overlay { position:fixed; inset:0; background:rgba(28,43,53,0.5); z-index:600; display:none; align-items:center; justify-content:center; }
 .confirm-delete-box { background:white; border-radius:20px; padding:28px 24px; max-width:320px; width:90%; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,.2); }
