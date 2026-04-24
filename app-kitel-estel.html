@@ -1436,9 +1436,12 @@ function initFromURL(){
     document.getElementById('storeSelect').value='';
     setTimeout(()=>document.getElementById('passInput').focus(), 300);
   } else {
-    // Sin parámetro → modo admin/general con desplegable
-    document.getElementById('loginModeLink').style.display='none';
-    document.getElementById('loginModeGeneral').style.display='';
+    // Sin parámetro → solo contraseña, detecta tienda automáticamente (igual que ?t=client)
+    document.getElementById('loginModeLink').style.display='';
+    document.getElementById('loginModeGeneral').style.display='none';
+    document.getElementById('storeLabelLink').textContent = 'Contrasenya';
+    document.getElementById('storeSelect').value='';
+    setTimeout(()=>document.getElementById('passInput').focus(), 300);
   }
 }
 
