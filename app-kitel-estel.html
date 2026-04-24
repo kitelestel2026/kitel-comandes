@@ -803,23 +803,71 @@ async function api(method,path,body=null){
 
 
 // ── DELIVERY DATE ─────────────────────────────────────────────────────────────
-function getNextDeliveryDate() {
-  // Delivery days: Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6
-  const deliveryDays = [2, 3, 4, 5, 6];
-  const now = new Date();
-  // Start from tomorrow
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  
-  // Find next delivery day
-  let candidate = new Date(tomorrow);
-  for (let i = 0; i < 7; i++) {
-    if (deliveryDays.includes(candidate.getDay())) {
-      return candidate;
-    }
+
+// Festius de Catalunya (dies inhàbils per a repartiment)
+// Format: 'MM-DD' per repetir cada any, o 'YYYY-MM-DD' per any concret
+const FESTIUS_CAT = [
+  // Festius nacionals anuals
+  '01-01', // Any Nou
+  '01-06', // Reis
+  '04-23', // Sant Jordi (festiu local Barcelona, sovint festiu CAT)
+  '05-01', // Festa del Treball
+  '06-24', // Sant Joan
+  '08-15', // Assumpció
+  '09-11', // Diada Nacional
+  '09-24', // La Mercè (Barcelona)
+  '10-12', // Festa Nacional d'Espanya
+  '11-01', // Tots Sants
+  '12-06', // Constitució
+  '12-08', // Immaculada
+  '12-25', // Nadal
+  '12-26', // Sant Esteve
+  // Setmana Santa (dates concretes per any)
+  '2025-04-18', // Divendres Sant 2025
+  '2025-04-21', // Dilluns de Pasqua 2025
+  '2026-04-03', // Divendres Sant 2026
+  '2026-04-06', // Dilluns de Pasqua 2026
+  '2027-03-26', // Divendres Sant 2027
+  '2027-03-29', // Dilluns de Pasqua 2027
+];
+
+// Dies EXTRA de repartiment excepcionals (ex: algun dilluns de Nadal cada 5-7 anys)
+// Afegeix aquí dates concretes 'YYYY-MM-DD' quan calgui:
+const EXTRA_DIES_REPARTIMENT = [
+  // '2025-12-29', // exemple: dilluns excepcional de Nadal
+];
+
+// Dies de repartiment normals: dimarts(2) a dissabte(6)
+const DELIVERY_DAYS = [2, 3, 4, 5, 6];
+
+function isFestiu(d) {
+  const iso = formatDateISO(d);
+  const mmdd = iso.slice(5); // 'MM-DD'
+  return FESTIUS_CAT.includes(iso) || FESTIUS_CAT.includes(mmdd);
+}
+
+function isDeliveryDay(d) {
+  const iso = formatDateISO(d);
+  // Dies extra excepcionals sempre compten
+  if (EXTRA_DIES_REPARTIMENT.includes(iso)) return true;
+  // Dies normals: dimarts-dissabte i no festiu
+  return DELIVERY_DAYS.includes(d.getDay()) && !isFestiu(d);
+}
+
+function getNextDeliveryDate(fromDate) {
+  // Si fromDate no s'especifica, comença des de demà
+  const start = fromDate ? new Date(fromDate) : new Date();
+  if (!fromDate) start.setDate(start.getDate() + 1);
+
+  // Normalitzar a mitjanit per evitar problemes de hora
+  start.setHours(0, 0, 0, 0);
+
+  let candidate = new Date(start);
+  for (let i = 0; i < 30; i++) { // màxim 30 dies de cerca
+    if (isDeliveryDay(candidate)) return candidate;
     candidate.setDate(candidate.getDate() + 1);
   }
-  return tomorrow;
+  return start; // fallback
 }
 
 function formatDateISO(d) {
@@ -843,7 +891,25 @@ function initDeliveryDate() {
   // Set min date to tomorrow
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0,0,0,0);
   input.min = formatDateISO(tomorrow);
+  // Listener per validar quan la tenda canvia la data manualment
+  input.addEventListener('change', function() {
+    validateAndFixDeliveryDate(this);
+  });
+}
+
+function validateAndFixDeliveryDate(input) {
+  if (!input.value) return;
+  const chosen = new Date(input.value + 'T00:00:00');
+  if (!isDeliveryDay(chosen)) {
+    const fixed = getNextDeliveryDate(chosen);
+    const fixedISO = formatDateISO(fixed);
+    input.value = fixedISO;
+    // Avís discret a la tenda
+    const diaSetmana = fixed.toLocaleDateString('ca-ES', {weekday:'long', day:'numeric', month:'long'});
+    toast(`⚠️ Dia no vàlid → canviat a ${diaSetmana}`, 3500);
+  }
 }
 
 async function doLogin(){
