@@ -80,6 +80,7 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 .fmt-select.fU { background:#e8f7fd; border-color:var(--blue); color:var(--blue); }
 .fmt-select.fC { background:#fff4ee; border-color:var(--red); color:var(--red); }
 .fmt-select.fK { background:var(--green-lt); border-color:var(--green); color:var(--green); }
+.fmt-select.locked { opacity:.7; cursor:not-allowed; pointer-events:none; }
 
 /* ── BOTTOM BAR ── */
 .bottom-bar { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:2px solid var(--blue); padding:12px 16px; display:flex; align-items:center; gap:12px; box-shadow:0 -4px 20px rgba(41,171,226,.12); z-index:200; }
@@ -631,7 +632,9 @@ const PRODUCTS = [
   {plu:183,nom:"Musclus",tipus:"U"},
   {plu:184,nom:"Musclus de Roca",tipus:"U"},
   {plu:185,nom:"Musclus Gegants",tipus:"U"},
+  {plu:685,nom:"Musclu Cordal",tipus:"U"},
   {plu:186,nom:"Musclus Boixot",tipus:"U"},
+  {plu:686,nom:"Musclu Boixot x3kg",tipus:"U"},
   {plu:187,nom:"Navalles",tipus:"K"},
   {plu:188,nom:"Necores",tipus:"U"},
   {plu:189,nom:"Necores congelades",tipus:"C"},
@@ -673,7 +676,7 @@ const PRODUCTS = [
   {plu:225,nom:"Rodaballo salvaje",tipus:"U"},
   {plu:226,nom:"Rossellona",tipus:"K"},
   {plu:227,nom:"Rossellona Gr.",tipus:"K"},
-  {plu:228,nom:"Rossellona Platja",tipus:"K"},
+  {plu:228,nom:"Rossellona 500gr",tipus:"K"},
   {plu:229,nom:"Sabre",tipus:"K"},
   {plu:230,nom:"Sabre talls",tipus:"K"},
   {plu:231,nom:"Salmó",tipus:"U"},
@@ -703,7 +706,7 @@ const PRODUCTS = [
   {plu:255,nom:"Sorell Gran",tipus:"K"},
   {plu:256,nom:"Sorells",tipus:"K"},
   {plu:257,nom:"Tallarina",tipus:"K"},
-  {plu:258,nom:"Tallarina Platja",tipus:"K"},
+  {plu:258,nom:"Tallarina Gran",tipus:"K"},
   {plu:259,nom:"Tires Poton",tipus:"K"},
   {plu:260,nom:"Tonyina",tipus:"U"},
   {plu:261,nom:"Tonyina Talls",tipus:"U"},
@@ -786,6 +789,13 @@ const PWD = {1:'dante1',2:'corce2',3:'borre3',5:'valenc5',6:'conse6',7:'bailen7'
 // Deduplicate products
 const seen = new Set();
 const PRODS = PRODUCTS.filter(p=>{ if(seen.has(p.plu)) return false; seen.add(p.plu); return true; });
+
+// Formats bloquejats: no es poden canviar per la tenda
+const LOCKED_FORMATS = {
+  4:'C', 315:'U', 316:'U', 317:'U',
+  320:'U', 321:'U', 326:'U', 327:'C',
+  328:'U', 1001:'C'
+};
 
 let curStore=null, curNom=null, orders={}, pill='all', adminData={};
 
@@ -997,7 +1007,10 @@ function renderList(){
       list.appendChild(h); lastCat=cat;
     }
     const o=od[p.plu]||{sobra:'',pedido:'',tipus:''};
-    const t=lastTipus[p.plu]||o.tipus||p.tipus||'U';
+    const locked = LOCKED_FORMATS[p.plu];
+    const t = locked || lastTipus[p.plu]||o.tipus||p.tipus||'U';
+    // Si és bloquejat, forçar el valor guardat
+    if(locked && orders[curStore] && orders[curStore][p.plu]) orders[curStore][p.plu].tipus = locked;
     const hasD=o.sobra||o.pedido;
     const row=document.createElement('div');
     row.className='prow'+(hasD?' has-data':'');
@@ -1006,7 +1019,7 @@ function renderList(){
       <div class="prow-cod">${p.plu}</div>
       <div class="prow-nom">${p.nom}</div>
       <div class="prow-fmt">
-        <select class="fmt-select f${t}" onchange="updTipus(${p.plu},this.value,this)">
+        <select class="fmt-select f${t}${locked?' locked':''}" ${locked?'disabled title="Format fix, no editable"':''} onchange="updTipus(${p.plu},this.value,this)">
           <option value="U" ${t==='U'?'selected':''}>U</option>
           <option value="C" ${t==='C'?'selected':''}>C</option>
           <option value="K" ${t==='K'?'selected':''}>K</option>
