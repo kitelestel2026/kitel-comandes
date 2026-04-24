@@ -967,10 +967,27 @@ async function doLogin(){
 }
 
 async function loadExisting(){
-  // Cambio 5: les tiendas comencen sempre amb app neta (sense dades precarregades).
-  // L'admin conserva l'historial complet via loadAdmin().
-  // No carreguem dades existents per a les tiendas.
-  return;
+  try {
+    const peds = await api('GET', `pedidos?tienda_id=eq.${curStore}&select=id,fecha_entrega,encargs,exportat&order=id.desc&limit=1`);
+    if (!peds || !peds.length) return;
+    const ped = peds[0];
+    // Si ja s'ha exportat l'Excel, no carreguem res (tenda comença neta)
+    if (ped.exportat) return;
+    const lins = await api('GET', `lineas_pedido?pedido_id=eq.${ped.id}&select=*`);
+    if (!lins || !lins.length) return;
+    if (!orders[curStore]) orders[curStore] = {};
+    lins.forEach(l => {
+      orders[curStore][l.cod] = { sobra: l.sobra || '', pedido: l.pedido || '', tipus: l.tipo || '' };
+    });
+    if (ped.encargs) {
+      encargs = ped.encargs.split('\n').filter(e => e.trim());
+      updateEncargsBadge();
+    }
+    if (ped.fecha_entrega) {
+      const inp = document.getElementById('deliveryDate');
+      if (inp) inp.value = ped.fecha_entrega;
+    }
+  } catch(e) { console.warn('Error carregant pedido:', e); }
 }
 
 function showApp(){
@@ -1363,7 +1380,7 @@ async function loadAdmin(){
     if(peds&&peds.length){
       for(const p of peds){
         const lins=await api('GET',`lineas_pedido?pedido_id=eq.${p.id}&select=*`);
-        adminData[p.tienda_id]={nom:p.tienda_nom,lineas:lins||[],time:p.created_at,encargs:p.encargs||'',fecha_entrega:p.fecha_entrega||today()};
+        adminData[p.tienda_id]={nom:p.tienda_nom,lineas:lins||[],time:p.created_at,encargs:p.encargs||'',fecha_entrega:p.fecha_entrega||today(),pedido_id:p.id};
       }
     }
     renderAdminStores(); renderAdminTable();
@@ -1431,6 +1448,11 @@ async function exportExcel(){
     a.href=url; a.download='KITEL_'+today()+'.xlsx';
     a.click(); URL.revokeObjectURL(url);
     toast('Excel exportat amb colors ✓');
+    // Marcar tots els pedidos com exportats
+    for (const [id] of sent) {
+      const d = adminData[id];
+      if (d?.pedido_id) await api('PATCH', `pedidos?id=eq.${d.pedido_id}`, {exportat: true});
+    }
     return;
   } catch(e) {
     console.error('Server error:', e);
@@ -1595,6 +1617,11 @@ async function exportExcel(){
   XLSX.utils.book_append_sheet(wb,ws,'CUADRANTE');
   XLSX.writeFile(wb,'KITEL_'+today()+'.xlsx');
   toast('Excel exportat ✓');
+  // Marcar tots els pedidos com exportats
+  for (const [id] of sent) {
+    const d = adminData[id];
+    if (d?.pedido_id) await api('PATCH', `pedidos?id=eq.${d.pedido_id}`, {exportat: true});
+  }
 }
 
 function sortirSenseGuardar(){
