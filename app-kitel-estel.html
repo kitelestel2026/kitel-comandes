@@ -90,6 +90,20 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 .btn-encarg { padding:13px 16px; background:var(--bg); color:var(--blue-dk); border:2px solid var(--border); border-radius:12px; font-size:20px; cursor:pointer; position:relative; }
 .btn-encarg.has-encargs { background:var(--blue-lt); border-color:var(--blue); }
 .btn-encarg .enc-badge { position:absolute;top:-6px;right:-6px;background:var(--blue);color:white;border-radius:50%;width:18px;height:18px;font-size:10px;font-family:DM Mono,monospace;display:flex;align-items:center;justify-content:center; }
+.btn-sortir { padding:13px 14px; background:var(--bg); color:var(--muted); border:2px solid var(--border); border-radius:12px; font-family:'DM Mono',monospace; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn-sortir:hover { background:#f0f0f0; }
+.btn-esborrar { padding:13px 14px; background:#fff4ee; color:var(--red); border:2px solid #f7c9b3; border-radius:12px; font-family:'DM Mono',monospace; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn-esborrar:hover { background:#fde8d8; }
+
+/* ── CONFIRM DELETE MODAL ── */
+.confirm-delete-overlay { position:fixed; inset:0; background:rgba(28,43,53,0.5); z-index:600; display:none; align-items:center; justify-content:center; }
+.confirm-delete-box { background:white; border-radius:20px; padding:28px 24px; max-width:320px; width:90%; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,.2); }
+.confirm-delete-title { font-family:'Caveat',cursive; font-size:26px; font-weight:700; color:var(--red); margin-bottom:10px; }
+.confirm-delete-msg { font-family:'DM Sans',sans-serif; font-size:14px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
+.confirm-delete-btns { display:flex; gap:10px; }
+.confirm-delete-btns button { flex:1; padding:13px; border-radius:12px; font-family:'Caveat',cursive; font-size:20px; font-weight:700; cursor:pointer; border:none; }
+.btn-cancel-delete { background:var(--bg); color:var(--text); border:2px solid var(--border) !important; }
+.btn-confirm-delete { background:var(--red); color:#fff; }
 
 /* ── CONFIRM ── */
 #confirmScreen { display:none; min-height:100vh; background:linear-gradient(160deg,#e8f7fd,#f7fbfe); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; }
@@ -347,8 +361,22 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
   <div class="product-list" id="productList"></div>
   <div class="bottom-bar">
     <div class="bottom-info">productes amb dades<strong id="bottomCount">0</strong></div>
+    <button class="btn-sortir" onclick="sortirSenseGuardar()">← Sortir</button>
+    <button class="btn-esborrar" onclick="confirmEsborrarPedido()">🗑 Esborrar</button>
     <button class="btn-encarg" onclick="openEncargs()">📝</button>
     <button class="btn-send" onclick="sendOrder()">Enviar ✓</button>
+  </div>
+
+  <!-- CONFIRM DELETE MODAL -->
+  <div class="confirm-delete-overlay" id="confirmDeleteModal">
+    <div class="confirm-delete-box">
+      <div class="confirm-delete-title">⚠️ Esborrar pedido?</div>
+      <div class="confirm-delete-msg">S'esborrarà tot el pedido de <strong id="deleteStoreName"></strong>. Aquesta acció no es pot desfer.</div>
+      <div class="confirm-delete-btns">
+        <button class="btn-cancel-delete" onclick="closeConfirmDelete()">Cancel·lar</button>
+        <button class="btn-confirm-delete" onclick="executeEsborrarPedido()">Esborrar</button>
+      </div>
+    </div>
   </div>
 
   <!-- ENCARGS MODAL -->
@@ -1397,6 +1425,44 @@ async function exportExcel(){
   XLSX.utils.book_append_sheet(wb,ws,'CUADRANTE');
   XLSX.writeFile(wb,'KITEL_'+today()+'.xlsx');
   toast('Excel exportat ✓');
+}
+
+function sortirSenseGuardar(){
+  if(confirm('Vols sortir sense guardar? El pedido actual es perdrà.')) {
+    resetApp();
+  }
+}
+
+function confirmEsborrarPedido(){
+  const modal = document.getElementById('confirmDeleteModal');
+  const nameEl = document.getElementById('deleteStoreName');
+  nameEl.textContent = curNom || curStore || 'aquesta tenda';
+  modal.style.display = 'flex';
+}
+
+function closeConfirmDelete(){
+  document.getElementById('confirmDeleteModal').style.display = 'none';
+}
+
+function executeEsborrarPedido(){
+  closeConfirmDelete();
+  // Esborrar totes les quantitats i formats
+  orders = {};
+  resetEncargs();
+  // Reiniciar els camps visuals
+  document.querySelectorAll('.qty-inp').forEach(inp => {
+    inp.value = '';
+    inp.classList.remove('sv','pv');
+  });
+  document.querySelectorAll('.fmt-select').forEach(sel => {
+    sel.value = 'U';
+    sel.className = 'fmt-select fU';
+  });
+  document.querySelectorAll('.prow').forEach(row => {
+    row.classList.remove('has-data');
+  });
+  updateBottom();
+  toast('Pedido esborrat ✓');
 }
 
 function resetApp(){
