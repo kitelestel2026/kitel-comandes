@@ -1215,7 +1215,7 @@ async function exportExcel(){
   const orders = {};
   STORES.forEach(([id,nom])=>{
     const d = adminData[id];
-    if(d) orders[String(id)] = {lineas: d.lineas, encargs: d.encargs||''};
+    if(d) orders[String(id)] = {lineas: d.lineas, encargs: (d.encargs||'').split('\n').filter(e=>e.trim()).join(' | ')};
     else orders[String(id)] = {lineas:[], encargs:''};
   });
 
