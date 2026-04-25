@@ -1159,6 +1159,18 @@ function handleQtyKey(event, plu, field) {
     }
     return;
   }
+
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    // Escape: tornar a la barra de cerca i netejar-la
+    const search = document.getElementById('searchInput');
+    if (search) {
+      search.value = '';
+      doFilter();
+      search.focus();
+    }
+    return;
+  }
 }
 
 // Borrar pedido de un producto con confirmación
