@@ -1094,19 +1094,20 @@ function handleQtyKey(event, plu, field) {
   const current = event.target;
   const idx = allInputs.indexOf(current);
 
-  if (event.key === 'Tab') {
+  if (event.key === 'Tab' || event.key === 'Enter') {
     event.preventDefault();
     if (field === 'sobra') {
-      // Tab: SOBRA → PEDIDO del mismo producto
+      // Tab/Enter: SOBRA → PEDIDO del mismo producto
       if (idx + 1 < allInputs.length) {
         allInputs[idx + 1].focus();
         allInputs[idx + 1].select();
       }
     } else {
-      // Tab: PEDIDO → SOBRA del siguiente producto
+      // Tab/Enter: PEDIDO → SOBRA del siguiente producto
       if (idx + 1 < allInputs.length) {
         allInputs[idx + 1].focus();
         allInputs[idx + 1].select();
+        allInputs[idx + 1].scrollIntoView({block:'nearest'});
       }
     }
     return;
