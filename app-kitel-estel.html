@@ -1625,9 +1625,10 @@ async function exportExcel(){
 }
 
 function sortirSenseGuardar(){
-  if(confirm('Vols sortir sense guardar? El pedido actual es perdrà.')) {
-    resetApp();
-  }
+  const od = orders[curStore] || {};
+  const hasData = Object.values(od).some(v => v.sobra || v.pedido);
+  if(hasData && !confirm('Vols sortir sense guardar? El pedido actual es perdrà.')) return;
+  resetApp();
 }
 
 function confirmEsborrarPedido(){
@@ -1641,24 +1642,19 @@ function closeConfirmDelete(){
   document.getElementById('confirmDeleteModal').style.display = 'none';
 }
 
-function executeEsborrarPedido(){
+async function executeEsborrarPedido(){
   closeConfirmDelete();
-  // Esborrar totes les quantitats i formats
-  orders = {};
-  resetEncargs();
-  // Reiniciar els camps visuals
-  document.querySelectorAll('.qty-inp').forEach(inp => {
-    inp.value = '';
-    inp.classList.remove('sv','pv');
-  });
-  document.querySelectorAll('.fmt-select').forEach(sel => {
-    sel.value = 'U';
-    sel.className = 'fmt-select fU';
-  });
-  document.querySelectorAll('.prow').forEach(row => {
-    row.classList.remove('has-data');
-  });
-  updateBottom();
+  try {
+    // Esborrar de Supabase: buscar l'últim pedido de la tenda i esborrar-lo
+    const peds = await api('GET', `pedidos?tienda_id=eq.${curStore}&select=id&order=id.desc&limit=1`);
+    if (peds && peds.length) {
+      const pedId = peds[0].id;
+      await api('DELETE', `lineas_pedido?pedido_id=eq.${pedId}`);
+      await api('DELETE', `pedidos?id=eq.${pedId}`);
+    }
+  } catch(e) { console.warn('Error esborrant pedido:', e); }
+  // Sortir directament sense confirmació
+  resetApp();
   toast('Pedido esborrat ✓');
 }
 
