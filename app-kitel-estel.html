@@ -1041,7 +1041,7 @@ function renderList(){
       <div class="prow-cod">${p.plu}</div>
       <div class="prow-nom">${p.nom}</div>
       <div class="prow-fmt">
-        <select class="fmt-select f${t}${locked?' locked':''}" ${locked?'disabled title="Format fix, no editable"':''} onchange="updTipus(${p.plu},this.value,this)">
+        <select class="fmt-select f${t}${locked?' locked':''}" ${locked?'disabled title="Format fix, no editable"':''} onchange="updTipus(${p.plu},this.value,this)" onkeydown="if(event.key==='Enter'){event.preventDefault();const row=this.closest('.prow');if(row){const sobra=row.querySelectorAll('.qty-inp')[0];if(sobra){sobra.focus();sobra.select();}}}">
           <option value="U" ${t==='U'?'selected':''}>U</option>
           <option value="C" ${t==='C'?'selected':''}>C</option>
           <option value="K" ${t==='K'?'selected':''}>K</option>
