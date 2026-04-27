@@ -502,8 +502,10 @@ const PRODUCTS = [
   {plu:48,nom:"Cloïssa Fina",tipus:"K"},
   {plu:49,nom:"Cloïssa Fina Gr.",tipus:"K"},
   {plu:50,nom:"Cloïssa Cultiu GR",tipus:"K"},
+  {plu:549,nom:"Cloissa Carril Gr",tipus:"K"},
   {plu:51,nom:"Cocochas",tipus:"U"},
   {plu:52,nom:"Congre",tipus:"U"},
+  {plu:53,nom:"Corvina Gran",tipus:"U"},
   {plu:53,nom:"Cranc de Riu",tipus:"U"},
   {plu:54,nom:"Corvall",tipus:"U"},
   {plu:55,nom:"Cranc",tipus:"U"},
@@ -608,6 +610,8 @@ const PRODUCTS = [
   {plu:154,nom:"Lluç Volanta Importació",tipus:"U"},
   {plu:155,nom:"Lluç Gran",tipus:"U"},
   {plu:156,nom:"Lluç Palangre Importació",tipus:"U"},
+  {plu:656,nom:"Palangre Importació 2-3",tipus:"U"},
+  {plu:754,nom:"Lluç Importació 2-3",tipus:"U"},
   {plu:157,nom:"Lluç Palangre",tipus:"U"},
   {plu:158,nom:"Lluç Platja Gr.",tipus:"K"},
   {plu:159,nom:"Lluç Platja M.",tipus:"K"},
@@ -685,7 +689,7 @@ const PRODUCTS = [
   {plu:229,nom:"Sabre",tipus:"K"},
   {plu:230,nom:"Sabre talls",tipus:"K"},
   {plu:231,nom:"Salmó",tipus:"U"},
-  {plu:232,nom:"Salmó Talls",tipus:"U"},
+  {plu:232,nom:"Salmo Gran",tipus:"U"},
   {plu:233,nom:"Salmó Filet",tipus:"U"},
   {plu:234,nom:"Sard",tipus:"U"},
   {plu:235,nom:"Sardina",tipus:"K"},
@@ -715,6 +719,7 @@ const PRODUCTS = [
   {plu:259,nom:"Tires Poton",tipus:"K"},
   {plu:260,nom:"Tonyina",tipus:"U"},
   {plu:261,nom:"Tonyina Talls",tipus:"U"},
+  {plu:760,nom:"Llom Tonyina Balfego",tipus:"U"},
   {plu:262,nom:"Truites",tipus:"U"},
   {plu:263,nom:"Turbo",tipus:"U"},
   {plu:264,nom:"Turbo platja",tipus:"U"},
@@ -797,7 +802,8 @@ const PRODS = PRODUCTS.filter(p=>{ if(seen.has(p.plu)) return false; seen.add(p.
 
 // Formats bloquejats: no es poden canviar per la tenda
 const LOCKED_FORMATS = {
-  4:'C', 315:'U', 316:'U', 317:'U',
+  760:'K',
+  4:'C', 53:'U', 315:'U', 316:'U', 317:'U',
   320:'U', 321:'U', 326:'U', 327:'C',
   328:'U', 1001:'C'
 };
@@ -1507,21 +1513,40 @@ async function exportExcel(){
   sent.forEach(([id])=>adminData[id].lineas.forEach(l=>cods.add(l.cod)));
   const sorted=[...cods].sort((a,b)=>a-b);
 
-  // DATA ROWS
+  // DATA ROWS - separar per format si una botiga usa U i l'altra C/K
   sorted.forEach(cod=>{
     const prod=PRODS.find(p=>p.plu===cod);
-    let tot=0;
-    sent.forEach(([id])=>{
-      const l=adminData[id].lineas.find(x=>x.cod===cod);
-      const n=parseFloat(l?.pedido||''); if(!isNaN(n)) tot+=n;
-    });
-    const row=[cod, prod?prod.nom:String(cod), tot||0, prod?prod.tipus:''];
+    
+    // Recollir tots els formats usats per aquest PLU
+    const formatMap = {}; // format -> {sobra per botiga, pedido per botiga}
     allStores.forEach(([id])=>{
       const d=adminData[id];
       const l=d?d.lineas.find(x=>x.cod===cod):null;
-      row.push(l?.sobra||'', l?.pedido||'');
+      if(l){
+        const fmt = l.tipus || prod?.tipus || 'U';
+        if(!formatMap[fmt]) formatMap[fmt]={};
+        formatMap[fmt][id] = l;
+      }
     });
-    wsData.push(row);
+    
+    // Si no hi ha dades, una sola fila buida amb format per defecte
+    const formats = Object.keys(formatMap);
+    if(!formats.length) formats.push(prod?.tipus||'U');
+    
+    // Crear una fila per cada format
+    formats.forEach(fmt=>{
+      let tot=0;
+      allStores.forEach(([id])=>{
+        const l=formatMap[fmt]?.[id];
+        const n=parseFloat(l?.pedido||''); if(!isNaN(n)) tot+=n;
+      });
+      const row=[cod, prod?prod.nom:String(cod), tot||0, fmt];
+      allStores.forEach(([id])=>{
+        const l=formatMap[fmt]?.[id];
+        row.push(l?.sobra||'', l?.pedido||'');
+      });
+      wsData.push(row);
+    });
   });
 
   // ENCÀRRECS row
@@ -1646,7 +1671,7 @@ async function exportExcel(){
 function sortirSenseGuardar(){
   const od = orders[curStore] || {};
   const hasData = Object.values(od).some(v => v.sobra || v.pedido);
-  if(hasData && !confirm('Vols sortir sense guardar? El pedido actual es perdrà.')) return;
+  if(hasData && !confirm('Vols tornar al login? El pedido ja està guardat a Supabase.')) return;
   resetApp();
 }
 
