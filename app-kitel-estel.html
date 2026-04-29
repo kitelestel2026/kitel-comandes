@@ -983,11 +983,11 @@ async function doLogin(){
 
 async function loadExisting(){
   try {
-    const peds = await api('GET', `pedidos?tienda_id=eq.${curStore}&select=id,fecha_entrega,encargs,exportat&order=id.desc&limit=1`);
+    // Solo cargar pedidos creados HOY - nunca mostrar pedidos de días anteriores
+    const hoy = today();
+    const peds = await api('GET', `pedidos?tienda_id=eq.${curStore}&created_at=gte.${hoy}T00:00:00&select=id,fecha_entrega,encargs&order=id.desc&limit=1`);
     if (!peds || !peds.length) return;
     const ped = peds[0];
-    // Si ja s'ha exportat l'Excel, no carreguem res (tenda comença neta)
-    if (ped.exportat) return;
     const lins = await api('GET', `lineas_pedido?pedido_id=eq.${ped.id}&select=*`);
     if (!lins || !lins.length) return;
     if (!orders[curStore]) orders[curStore] = {};
