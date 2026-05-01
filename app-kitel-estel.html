@@ -503,6 +503,7 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
       <h3 style="font-family:DM Mono,monospace;font-size:14px;color:#1a3a5c;margin:0;">📋 HISTORIAL DE PEDIDOS</h3>
       <input type="date" id="historialDate" style="padding:6px 10px;border:1.5px solid #c8d8e8;border-radius:8px;font-family:DM Mono,monospace;font-size:12px;" onchange="loadHistorial()">
+      <button onclick="exportHistorialExcel()" style="padding:6px 14px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📥 Excel</button>
       <button onclick="hideHistorial()" style="margin-left:auto;padding:6px 14px;background:#5a7a9a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;">✕ Cerrar</button>
     </div>
     <div id="historialContent"></div>
@@ -1861,6 +1862,57 @@ function initFromURL(){
   }
 }
 
+
+
+async function exportHistorialExcel() {
+  const fecha = document.getElementById('historialDate').value;
+  if (!fecha) { toast('Selecciona una fecha'); return; }
+  
+  loading(true);
+  toast('Generando Excel del historial...');
+  
+  try {
+    // Cargar datos del historial de Supabase
+    const rows = await api('GET', `historial?fecha=eq.${fecha}&select=*&order=tienda_id`);
+    if (!rows || !rows.length) {
+      loading(false);
+      toast('No hay datos para esta fecha');
+      return;
+    }
+    
+    // Convertir formato historial al formato que espera Railway
+    const orders = {};
+    for (const r of rows) {
+      orders[String(r.tienda_id)] = {
+        lineas: Array.isArray(r.lineas) ? r.lineas : [],
+        encargs: r.encargs || ''
+      };
+    }
+    
+    // Enviar a Railway igual que exportExcel normal
+    const resp = await fetch('https://web-production-38d21.up.railway.app/generate-excel', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({orders, fecha_entrega: fecha})
+    });
+    
+    if (!resp.ok) throw new Error('Error servidor: ' + resp.status);
+    
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const fechaFmt = fecha.split('-').reverse().join('-');
+    a.href = url;
+    a.download = `KITEL_HIST_${fechaFmt}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Excel del historial ✓');
+  } catch(e) {
+    console.error('Error:', e);
+    toast('Error generando Excel');
+  }
+  loading(false);
+}
 
 // ── HISTORIAL ADMIN ──
 function showHistorial() {
