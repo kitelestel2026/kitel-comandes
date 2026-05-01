@@ -429,17 +429,6 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
   </div>
 </div>
 
-<!-- HISTORIAL PANEL ADMIN -->
-<div id="historialPanel" style="display:none;padding:14px;background:#f0f4f8;">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-    <h3 style="font-family:DM Mono,monospace;font-size:14px;color:#1a3a5c;margin:0;">📋 HISTORIAL DE PEDIDOS</h3>
-    <input type="date" id="historialDate" style="padding:6px 10px;border:1.5px solid #c8d8e8;border-radius:8px;font-family:DM Mono,monospace;font-size:12px;" onchange="loadHistorial()">
-    <button onclick="hideHistorial()" style="margin-left:auto;padding:6px 14px;background:#5a7a9a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;">✕ Cerrar</button>
-  </div>
-  <div id="historialContent"></div>
-  <div id="historialDetail"></div>
-</div>
-
 <!-- CONFIRM DELETE MODAL -->
   <div class="confirm-delete-overlay" id="confirmDeleteModal">
     <div class="confirm-delete-box">
@@ -508,6 +497,17 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
   </div>
   <div class="tbl-wrap"><table class="atbl"><thead id="atblHead"></thead><tbody id="atblBody"></tbody></table></div>
 </div>
+
+  <!-- HISTORIAL PANEL ADMIN -->
+  <div id="historialPanel" style="display:none;padding:14px;background:#f0f4f8;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <h3 style="font-family:DM Mono,monospace;font-size:14px;color:#1a3a5c;margin:0;">📋 HISTORIAL DE PEDIDOS</h3>
+      <input type="date" id="historialDate" style="padding:6px 10px;border:1.5px solid #c8d8e8;border-radius:8px;font-family:DM Mono,monospace;font-size:12px;" onchange="loadHistorial()">
+      <button onclick="hideHistorial()" style="margin-left:auto;padding:6px 14px;background:#5a7a9a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;">✕ Cerrar</button>
+    </div>
+    <div id="historialContent"></div>
+    <div id="historialDetail"></div>
+  </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
