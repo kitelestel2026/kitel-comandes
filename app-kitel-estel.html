@@ -28,6 +28,35 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 .btn-entrar { width:100%; padding:15px; background:var(--cyan); color:#f0f4f8; border:none; border-radius:12px; font-family:'DM Mono',monospace; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:.1em; text-transform:uppercase; }
 .btn-entrar:hover { background:#6ecfff; }
 
+
+/* ── HERRAMIENTAS BUTTON ── */
+.herr-btn-old {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.45);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.90);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.herr-btn-old:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.75);
+}
+.herr-btn-old .eines-icon {
+  font-size: 13px;
+}
+
 /* ── APP ── */
 #appScreen { display:none; }
 .app-header { background:#1a3a5c; border-bottom:1px solid #124e78; height:56px; padding:0 14px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,.2); }
@@ -346,6 +375,10 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
       <div class="app-header-store" id="hdrStore">—</div>
       <div class="app-header-date" id="hdrDate">—</div>
     </div>
+    <a class="herr-btn-old" href="https://kitelestel.com/eines-kitel-estel.html" title="Eines i recursos">
+      <span class="eines-icon">🛠️</span>
+      <span data-lang-i="ca">EINES</span><span data-lang-i="es">HERRAMIENTAS</span>
+    </a>
   </div>
   <div class="search-bar">
     <input type="search" id="searchInput" placeholder="🔍 Buscar producto o código..." oninput="doFilter()" onkeydown="handleSearchKey(event)">
