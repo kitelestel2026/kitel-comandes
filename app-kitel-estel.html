@@ -29,8 +29,8 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 .btn-entrar:hover { background:#6ecfff; }
 
 
-/* ── HERRAMIENTAS BUTTON ── */
-.herr-btn-old {
+/* ── EINES BUTTON ── */
+.eines-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -49,11 +49,11 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
   transition: background 0.2s, border-color 0.2s;
   flex-shrink: 0;
 }
-.herr-btn-old:hover {
+.eines-btn:hover {
   background: rgba(255,255,255,0.15);
   border-color: rgba(255,255,255,0.75);
 }
-.herr-btn-old .eines-icon {
+.eines-btn .eines-icon {
   font-size: 13px;
 }
 
@@ -375,7 +375,7 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
       <div class="app-header-store" id="hdrStore">—</div>
       <div class="app-header-date" id="hdrDate">—</div>
     </div>
-    <a class="herr-btn-old" href="https://kitelestel.com/eines-kitel-estel.html" title="Eines i recursos">
+    <a class="eines-btn" href="https://kitelestel.com/eines-kitel-estel.html" title="Eines i recursos">
       <span class="eines-icon">🛠️</span>
       <span data-lang-i="ca">EINES</span><span data-lang-i="es">HERRAMIENTAS</span>
     </a>
@@ -408,10 +408,39 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
     <button class="btn-sortir" onclick="sortirSenseGuardar()">← Salir</button>
     <button class="btn-esborrar" onclick="confirmEsborrarPedido()">🗑 Borrar</button>
     <button class="btn-encarg" onclick="openEncargs()">📝 ENCARGOS</button>
+    <button class="btn-encarg" onclick="openHistorialTienda()" style="background:#1a3a5c;border-color:#1a3a5c;color:#fff;" title="Ver historial">📋</button>
     <button class="btn-send" onclick="sendOrder()">Enviar ✓</button>
   </div>
 
-  <!-- CONFIRM DELETE MODAL -->
+  <!-- MODAL HISTORIAL TIENDA -->
+<div id="historialTiendaModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;overflow-y:auto;padding:20px;">
+  <div style="background:#fff;border-radius:16px;max-width:500px;margin:0 auto;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div style="background:#1a3a5c;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="color:#fff;font-family:DM Mono,monospace;font-size:14px;font-weight:700;">📋 MI HISTORIAL</span>
+      <span id="histTiendaNom" style="color:rgba(255,255,255,0.7);font-family:DM Mono,monospace;font-size:12px;"></span>
+      <button onclick="closeHistorialTienda()" style="margin-left:auto;background:rgba(255,255,255,0.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:14px;">
+      <select id="histTiendaFecha" onchange="loadHistorialTienda()" style="width:100%;padding:10px;border:1.5px solid #c8d8e8;border-radius:8px;font-family:DM Mono,monospace;font-size:13px;margin-bottom:12px;outline:none;">
+        <option value="">— Selecciona una fecha —</option>
+      </select>
+      <div id="histTiendaContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORIAL PANEL ADMIN -->
+<div id="historialPanel" style="display:none;padding:14px;background:#f0f4f8;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <h3 style="font-family:DM Mono,monospace;font-size:14px;color:#1a3a5c;margin:0;">📋 HISTORIAL DE PEDIDOS</h3>
+    <input type="date" id="historialDate" style="padding:6px 10px;border:1.5px solid #c8d8e8;border-radius:8px;font-family:DM Mono,monospace;font-size:12px;" onchange="loadHistorial()">
+    <button onclick="hideHistorial()" style="margin-left:auto;padding:6px 14px;background:#5a7a9a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;">✕ Cerrar</button>
+  </div>
+  <div id="historialContent"></div>
+  <div id="historialDetail"></div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
   <div class="confirm-delete-overlay" id="confirmDeleteModal">
     <div class="confirm-delete-box">
       <div class="confirm-delete-title">⚠️ Borrar pedido?</div>
@@ -463,6 +492,7 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
     </div>
     <button onclick="loadAdmin()" style="padding:10px 20px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-family:Caveat,cursive;font-size:20px;font-weight:700;cursor:pointer">🔄 Cargar</button>
     <button onclick="exportExcel()" style="padding:10px 20px;background:var(--green);color:#fff;border:none;border-radius:10px;font-family:Caveat,cursive;font-size:20px;font-weight:700;cursor:pointer">📊 Exportar Excel</button>
+    <button onclick="showHistorial()" style="padding:10px 20px;background:#1a3a5c;color:#fff;border:none;border-radius:10px;font-family:Caveat,cursive;font-size:20px;font-weight:700;cursor:pointer;">📋 Historial</button>
     <button onclick="openPwdModal()" style="padding:10px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;font-family:DM Mono,monospace;font-size:12px;cursor:pointer;color:var(--muted)">🔑 Contraseñas</button>
     <button onclick="resetApp()" style="padding:10px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;font-family:DM Mono,monospace;font-size:11px;cursor:pointer;color:var(--muted)">← Salir</button>
   </div>
@@ -1830,6 +1860,146 @@ function initFromURL(){
     setTimeout(()=>document.getElementById('passInput').focus(), 300);
   }
 }
+
+
+// ── HISTORIAL ADMIN ──
+function showHistorial() {
+  document.getElementById('historialPanel').style.display = 'block';
+  const inp = document.getElementById('historialDate');
+  inp.value = today();
+  loadHistorial();
+  document.getElementById('historialPanel').scrollIntoView({behavior:'smooth'});
+}
+function hideHistorial() {
+  document.getElementById('historialPanel').style.display = 'none';
+}
+async function loadHistorial() {
+  const fecha = document.getElementById('historialDate').value;
+  if (!fecha) return;
+  const cont = document.getElementById('historialContent');
+  cont.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Cargando historial...</div>';
+  try {
+    const rows = await api('GET', `historial?fecha=eq.${fecha}&select=*&order=tienda_id`);
+    if (!rows || !rows.length) {
+      cont.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted)">No hay historial para ${fecha}</div>`;
+      return;
+    }
+    let html = `<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:DM Mono,monospace;">
+      <thead><tr style="background:#1a3a5c;color:#fff;">
+        <th style="padding:8px;text-align:left;">TIENDA</th>
+        <th style="padding:8px;text-align:center;">PRODS</th>
+        <th style="padding:8px;text-align:left;">ENCARGOS</th>
+        <th style="padding:8px;text-align:center;">VER</th>
+      </tr></thead><tbody>`;
+    rows.forEach((r, i) => {
+      const lineas = Array.isArray(r.lineas) ? r.lineas : [];
+      const hasData = lineas.filter(l => l.pedido || l.sobra).length;
+      const bg = i % 2 === 0 ? '#f5f9fc' : '#fff';
+      html += `<tr style="background:${bg};border-bottom:1px solid #d0dde8;">
+        <td style="padding:8px;font-weight:700;color:#1a3a5c;">${r.tienda_nom || r.tienda_id}</td>
+        <td style="padding:8px;text-align:center;">${hasData}</td>
+        <td style="padding:8px;color:#666;">${r.encargs || '—'}</td>
+        <td style="padding:8px;text-align:center;">
+          <button onclick='showHistorialDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})' 
+            style="padding:3px 10px;background:#1a6fa8;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">Ver</button>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    cont.innerHTML = html;
+  } catch(e) {
+    cont.innerHTML = '<div style="padding:20px;text-align:center;color:red;">Error cargando historial</div>';
+  }
+}
+function showHistorialDetail(r) {
+  const lineas = Array.isArray(r.lineas) ? r.lineas : [];
+  const withData = lineas.filter(l => l.pedido || l.sobra);
+  let html = `<div style="margin-top:12px;padding:12px;background:#fff;border:1.5px solid #c8d8e8;border-radius:10px;">
+    <h4 style="font-family:DM Mono,monospace;color:#1a3a5c;margin:0 0 8px;">${r.tienda_nom} — ${r.fecha}</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:DM Mono,monospace;">
+      <tr style="background:#1a3a5c;color:#fff;">
+        <th style="padding:5px;">COD</th><th style="padding:5px;text-align:left;">PRODUCTO</th>
+        <th style="padding:5px;">F</th><th style="padding:5px;color:#ffaaaa;">S</th><th style="padding:5px;color:#aad4ff;">P</th>
+      </tr>`;
+  withData.forEach((l, i) => {
+    const bg = i % 2 === 0 ? '#f5f9fc' : '#fff';
+    html += `<tr style="background:${bg};border-bottom:1px solid #e0e8f0;">
+      <td style="padding:5px;text-align:center;color:#1a6fa8;font-weight:700;">${l.cod}</td>
+      <td style="padding:5px;">${l.concepto||''}</td>
+      <td style="padding:5px;text-align:center;color:#5a7a9a;">${l.tipo||''}</td>
+      <td style="padding:5px;text-align:center;color:#cc4400;font-weight:${l.sobra?'700':'400'};">${l.sobra||'—'}</td>
+      <td style="padding:5px;text-align:center;color:#1a6fa8;font-weight:${l.pedido?'700':'400'};">${l.pedido||'—'}</td>
+    </tr>`;
+  });
+  html += `</table>`;
+  if (r.encargs) html += `<div style="margin-top:8px;padding:8px;background:#fff4ee;border-radius:6px;font-size:11px;color:#cc4400;"><b>ENCARGOS:</b> ${r.encargs}</div>`;
+  html += `</div>`;
+  const prev = document.getElementById('historialDetail');
+  if (prev) prev.innerHTML = html;
+}
+
+// ── HISTORIAL TIENDA ──
+async function openHistorialTienda() {
+  document.getElementById('historialTiendaModal').style.display = 'block';
+  document.getElementById('histTiendaNom').textContent = curNom || '';
+  document.getElementById('histTiendaContent').innerHTML = '<div style="text-align:center;padding:20px;color:#5a7a9a;">Cargando...</div>';
+  try {
+    const rows = await api('GET', `historial?tienda_id=eq.${curStore}&select=fecha&order=fecha.desc&limit=30`);
+    const sel = document.getElementById('histTiendaFecha');
+    sel.innerHTML = '<option value="">— Selecciona una fecha —</option>';
+    const fechas = [...new Set(rows.map(r => r.fecha))];
+    fechas.forEach(f => {
+      const opt = document.createElement('option');
+      const p = f.split('-');
+      opt.value = f; opt.textContent = `${p[2]}/${p[1]}/${p[0]}`;
+      sel.appendChild(opt);
+    });
+    if (fechas.length) { sel.value = fechas[0]; loadHistorialTienda(); }
+    else document.getElementById('histTiendaContent').innerHTML = '<div style="text-align:center;padding:20px;color:#5a7a9a;">No hay historial disponible</div>';
+  } catch(e) {
+    document.getElementById('histTiendaContent').innerHTML = '<div style="text-align:center;padding:20px;color:red;">Error cargando historial</div>';
+  }
+}
+function closeHistorialTienda() {
+  document.getElementById('historialTiendaModal').style.display = 'none';
+}
+async function loadHistorialTienda() {
+  const fecha = document.getElementById('histTiendaFecha').value;
+  if (!fecha) return;
+  const cont = document.getElementById('histTiendaContent');
+  cont.innerHTML = '<div style="text-align:center;padding:20px;color:#5a7a9a;">Cargando...</div>';
+  try {
+    const rows = await api('GET', `historial?tienda_id=eq.${curStore}&fecha=eq.${fecha}&select=*&limit=1`);
+    if (!rows || !rows.length) { cont.innerHTML = '<div style="text-align:center;padding:20px;color:#5a7a9a;">No hay datos para esta fecha</div>'; return; }
+    const r = rows[0];
+    const lineas = Array.isArray(r.lineas) ? r.lineas : [];
+    const withData = lineas.filter(l => l.pedido || l.sobra);
+    let html = `<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:DM Mono,monospace;">
+      <thead><tr style="background:#1a3a5c;color:#fff;">
+        <th style="padding:7px 5px;text-align:center;">COD</th>
+        <th style="padding:7px 5px;text-align:left;">PRODUCTO</th>
+        <th style="padding:7px 5px;text-align:center;">F</th>
+        <th style="padding:7px 5px;text-align:center;color:#ffaaaa;">SOBRA</th>
+        <th style="padding:7px 5px;text-align:center;color:#aad4ff;">PEDIDO</th>
+      </tr></thead><tbody>`;
+    withData.forEach((l, i) => {
+      const bg = i % 2 === 0 ? '#f5f9fc' : '#fff';
+      html += `<tr style="background:${bg};border-bottom:1px solid #e0e8f0;">
+        <td style="padding:6px 5px;text-align:center;color:#1a6fa8;font-weight:700;">${l.cod}</td>
+        <td style="padding:6px 5px;">${l.concepto||''}</td>
+        <td style="padding:6px 5px;text-align:center;color:#5a7a9a;">${l.tipo||''}</td>
+        <td style="padding:6px 5px;text-align:center;color:#cc4400;font-weight:${l.sobra?'700':'400'};">${l.sobra||'—'}</td>
+        <td style="padding:6px 5px;text-align:center;color:#1a6fa8;font-weight:${l.pedido?'700':'400'};">${l.pedido||'—'}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    if (r.encargs) html += `<div style="margin-top:10px;padding:10px;background:#fff4ee;border-radius:8px;border:1px solid #f0c0a0;font-size:12px;"><b style="color:#cc4400;">ENCARGOS:</b> ${r.encargs}</div>`;
+    cont.innerHTML = html;
+  } catch(e) {
+    cont.innerHTML = '<div style="text-align:center;padding:20px;color:red;">Error cargando datos</div>';
+  }
+}
+
 
 // Run on load
 window.addEventListener('DOMContentLoaded', initFromURL);
